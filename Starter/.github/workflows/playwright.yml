@@ -3,16 +3,12 @@ name: Playwright CI
 
 # --- Triggers ---
 on:
-  # 1) When changes are merged to main (i.e., pushes to main)
   push:
-    branches: [ main ]
-
-  # 2) Every day at 8:00 AM CST
-  # GitHub Actions uses UTC for cron. 8:00 AM CST (UTC-6) = 14:00 UTC
+    branches: [ "main" ]
+  pull_request:              # Add this if you expect checks on PRs
+    branches: [ "main" ]
   schedule:
-    - cron: "0 14 * * *"
-
-  # 3) Manual runs from GitHub UI (Actions tab -> Run workflow)
+    - cron: "0 14 * * *"     # 8:00 AM CST; use "0 13 * * *" for 8:00 AM CDT
   workflow_dispatch:
 
 # Avoid overlapping runs for the same ref
@@ -35,31 +31,29 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
-      # If you DON'T have package-lock.json yet, keep npm install:
+      # Prefer npm ci if you have package-lock.json (faster, reproducible)
       - name: Install dependencies
-        run: npm install
-
-      # If you DO have package-lock.json, prefer reproducible installs:
-      # - name: Install dependencies (CI)
-      #   run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Install Playwright browsers & OS deps
         run: npx playwright install --with-deps
 
-      # Optional: ensure a clean report directory
       - name: Clean Playwright report
         run: rm -rf playwright-report || true
 
-      # Run tests; CI=true makes headless if you used `headless: !!process.env.CI` in config
       - name: Run Playwright tests (HTML report)
         env:
           CI: true
         run: npx playwright test --reporter=html
 
-      # Attach the HTML report to the run so you can download and open index.html
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
