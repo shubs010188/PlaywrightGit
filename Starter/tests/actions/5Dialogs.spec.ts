@@ -63,8 +63,9 @@ test('Saving storage - data is not cleared - reject dialog', async ({ page }) =>
     await page.reload()
 
     await expect(nameField).toHaveValue(someName)
-
-
+ 
+    //commit to main
+    //await expect(nameField).toHaveValue(someName)
 
 
 
