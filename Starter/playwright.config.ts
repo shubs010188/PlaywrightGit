@@ -9,7 +9,7 @@ export default defineConfig({
   },
   use: {
     baseURL: 'http://localhost:5000/',
-    headless: false,
+    headless: !!process.env.CI, // headless on CI, headed locally
   },
   /*reporter: 'html',
   webServer: {
